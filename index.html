@@ -10,9 +10,14 @@
             padding: 0;
             box-sizing: border-box;
         }
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #000;
+        }
         body {
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -20,19 +25,22 @@
             font-family: 'Microsoft YaHei', sans-serif;
             color: #fff;
             overflow-x: hidden;
-            padding: 10px;
+            padding: 0;
+            touch-action: none; /* 禁止默认触摸行为 */
         }
         h1 {
             margin: 8px 0;
             text-shadow: 0 0 20px #6644ff;
             font-size: 1.5rem;
             text-align: center;
+            flex-shrink: 0;
         }
         #gameContainer {
             position: relative;
             width: 100%;
             max-width: 800px;
             aspect-ratio: 4/3;
+            flex-shrink: 0;
         }
         canvas {
             width: 100%;
@@ -158,66 +166,63 @@
         .btn-run { background: #888; color: white; }
         .btn-run:hover { background: #aaa; }
         
-        /* 移动端控制按钮 */
-        #mobileControls {
+        /* 移动端虚拟摇杆 */
+        #joystickArea {
             display: none;
             position: fixed;
-            bottom: 20px;
-            right: 20px;
+            bottom: 30px;
+            left: 30px;
+            width: 120px;
+            height: 120px;
             z-index: 100;
         }
-        .dpad {
-            display: grid;
-            grid-template-columns: repeat(3, 50px);
-            grid-template-rows: repeat(3, 50px);
-            gap: 5px;
+        #joystickBase {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
         }
-        .dpad-btn {
+        #joystickKnob {
+            position: absolute;
             width: 50px;
             height: 50px;
-            background: rgba(255, 255, 255, 0.15);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 10px;
-            color: white;
-            font-size: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            user-select: none;
-            -webkit-user-select: none;
-            touch-action: manipulation;
-        }
-        .dpad-btn:active {
-            background: rgba(255, 255, 255, 0.3);
-        }
-        .dpad-btn.empty {
-            background: transparent;
-            border: none;
+            background: radial-gradient(circle at 30% 30%, #9966ff, #6644aa);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            left: 35px;
+            top: 35px;
+            box-shadow: 0 0 15px rgba(150, 100, 255, 0.5);
+            transition: transform 0.05s;
         }
         
         /* 移动端操作按钮 */
         #mobileActions {
             display: none;
             position: fixed;
-            bottom: 20px;
-            left: 20px;
+            bottom: 30px;
+            right: 30px;
             z-index: 100;
-            gap: 10px;
+            gap: 15px;
         }
         .action-btn {
-            width: 55px;
-            height: 55px;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
             border: none;
-            font-size: 24px;
+            font-size: 26px;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
             touch-action: manipulation;
+            background: rgba(255, 255, 255, 0.15);
+            border: 2px solid rgba(255, 255, 255, 0.3);
         }
         .action-btn:active {
             transform: scale(0.9);
+            background: rgba(255, 255, 255, 0.3);
         }
         
         #controls {
@@ -225,43 +230,94 @@
             color: #aaa;
             font-size: 12px;
             text-align: center;
-            padding-bottom: 80px;
+            padding-bottom: 10px;
+            flex-shrink: 0;
         }
 
-        /* 响应式断点 */
-        @media (max-width: 600px) {
+        /* 响应式断点 - 移动端全屏 */
+        @media (max-width: 768px), (pointer: coarse) {
+            html, body {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+            }
             h1 {
-                font-size: 1.2rem;
+                font-size: 1rem;
+                padding: 5px 0;
+                margin: 5px 0;
+            }
+            #gameContainer {
+                width: 100%;
+                max-width: 100%;
+                aspect-ratio: auto;
+                height: calc(100vh - 45px);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            canvas {
+                border: none;
+                border-radius: 0;
+                max-height: 100%;
+                max-width: 100%;
             }
             #ui {
-                font-size: 10px;
-                padding: 6px 8px;
-                max-width: 50%;
+                font-size: 9px;
+                padding: 4px 6px;
+                max-width: 60%;
+                top: 5px;
+                left: 5px;
+            }
+            #ui div {
+                margin: 1px 0;
             }
             #messageBox {
-                font-size: 12px;
-                padding: 10px 15px;
+                font-size: 11px;
+                padding: 6px 10px;
+                bottom: 5px;
+                min-width: 50%;
             }
             .battle-title {
-                font-size: 16px;
+                font-size: 12px;
             }
             .enemy-info {
-                font-size: 12px;
+                font-size: 10px;
+                padding: 5px;
+            }
+            .hp-bar {
+                height: 12px;
             }
             button {
-                padding: 10px 12px;
-                font-size: 12px;
-                min-width: 60px;
+                padding: 6px 8px;
+                font-size: 10px;
+                min-width: 45px;
             }
-            #mobileControls, #mobileActions {
+            /* 显示虚拟摇杆和操作按钮 */
+            #joystickArea, #mobileActions {
                 display: flex;
             }
             #controls {
                 display: none;
             }
+            /* 调整战斗UI位置 */
+            #battleUI {
+                width: 95%;
+                max-width: 350px;
+                padding: 8px;
+            }
+            .battle-actions {
+                gap: 4px;
+                margin-top: 6px;
+            }
+            .battle-actions button {
+                padding: 5px 6px;
+                font-size: 9px;
+            }
         }
         
-        @media (min-width: 601px) {
+        @media (min-width: 769px) {
             /* 平板及以上显示提示 */
             body::after {
                 content: '💡 手机端可用屏幕下方按钮控制';
@@ -278,6 +334,11 @@
                     display: block;
                 }
             }
+        }
+        
+        /* 隐藏旧的十字键 */
+        #mobileControls {
+            display: none !important;
         }
     </style>
 </head>
@@ -317,24 +378,16 @@
     </div>
     <div id="controls">移动: WASD 或 方向键 | 探索: E | 背包: I</div>
 
-    <!-- 移动端控制按钮 -->
-    <div id="mobileControls">
-        <div class="dpad">
-            <div class="dpad-btn empty"></div>
-            <div class="dpad-btn" onclick="movePlayer(0, -1)">⬆️</div>
-            <div class="dpad-btn empty"></div>
-            <div class="dpad-btn" onclick="movePlayer(-1, 0)">⬅️</div>
-            <div class="dpad-btn empty"></div>
-            <div class="dpad-btn" onclick="movePlayer(1, 0)">➡️</div>
-            <div class="dpad-btn empty"></div>
-            <div class="dpad-btn" onclick="movePlayer(0, 1)">⬇️</div>
-            <div class="dpad-btn empty"></div>
-        </div>
+    <!-- 移动端虚拟摇杆 -->
+    <div id="joystickArea">
+        <div id="joystickBase"></div>
+        <div id="joystickKnob"></div>
     </div>
     
     <!-- 移动端操作按钮 -->
     <div id="mobileActions">
-        <button class="action-btn" style="background: #4a7c4a;" onclick="explore()">🔍</button>
+        <button class="action-btn" onclick="explore()">🔍</button>
+        <button class="action-btn" onclick="toggleMenu()">📦</button>
     </div>
 
     <script>
@@ -815,6 +868,106 @@
             isSwiping = false;
             stopContinuousSwipe();
         });
+
+        // ==================== 虚拟摇杆控制 ====================
+        const joystickArea = document.getElementById('joystickArea');
+        const joystickKnob = document.getElementById('joystickKnob');
+        let joystickActive = false;
+        let joystickTimer = null;
+        let joystickDx = 0;
+        let joystickDy = 0;
+        
+        const JOYSTICK_RADIUS = 60; // 底座半径
+        const KNOB_RADIUS = 25; // 摇杆半径
+        const MAX_DISTANCE = JOYSTICK_RADIUS - KNOB_RADIUS; // 最大移动距离
+        
+        // 触摸开始
+        joystickArea.addEventListener('touchstart', (e) => {
+            if (game.inBattle) return;
+            e.preventDefault();
+            e.stopPropagation();
+            joystickActive = true;
+            handleJoystickMove(e.touches[0]);
+            startJoystickMove();
+        }, { passive: false });
+        
+        // 触摸移动
+        joystickArea.addEventListener('touchmove', (e) => {
+            if (game.inBattle || !joystickActive) return;
+            e.preventDefault();
+            e.stopPropagation();
+            handleJoystickMove(e.touches[0]);
+        }, { passive: false });
+        
+        // 触摸结束
+        joystickArea.addEventListener('touchend', (e) => {
+            if (game.inBattle) return;
+            e.preventDefault();
+            e.stopPropagation();
+            resetJoystick();
+        }, { passive: false });
+        
+        // 处理摇杆移动
+        function handleJoystickMove(touch) {
+            const rect = joystickArea.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            
+            let dx = touch.clientX - centerX;
+            let dy = touch.clientY - centerY;
+            
+            // 计算距离并限制范围
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            if (distance > MAX_DISTANCE) {
+                dx = (dx / distance) * MAX_DISTANCE;
+                dy = (dy / distance) * MAX_DISTANCE;
+            }
+            
+            // 更新摇杆位置
+            joystickKnob.style.transform = `translate(${dx}px, ${dy}px)`;
+            
+            // 计算方向向量
+            joystickDx = dx / MAX_DISTANCE;
+            joystickDy = dy / MAX_DISTANCE;
+        }
+        
+        // 重置摇杆
+        function resetJoystick() {
+            joystickActive = false;
+            joystickDx = 0;
+            joystickDy = 0;
+            joystickKnob.style.transform = 'translate(0, 0)';
+            stopJoystickMove();
+        }
+        
+        // 开始连续移动
+        function startJoystickMove() {
+            if (joystickTimer) return;
+            joystickTimer = setInterval(() => {
+                if (!joystickActive || game.inBattle) return;
+                
+                // 根据摇杆方向移动
+                const moveSpeed = 0.3; // 移动速度阈值
+                if (Math.abs(joystickDx) > moveSpeed || Math.abs(joystickDy) > moveSpeed) {
+                    const dx = joystickDx > moveSpeed ? 1 : (joystickDx < -moveSpeed ? -1 : 0);
+                    const dy = joystickDy > moveSpeed ? 1 : (joystickDy < -moveSpeed ? -1 : 0);
+                    movePlayer(dx, dy);
+                }
+            }, 150); // 移动间隔
+        }
+        
+        // 停止连续移动
+        function stopJoystickMove() {
+            if (joystickTimer) {
+                clearInterval(joystickTimer);
+                joystickTimer = null;
+            }
+        }
+        
+        // 菜单功能（移动端）
+        function toggleMenu() {
+            showMessage('背包功能开发中...');
+        }
 
         // 初始化游戏
         function init() {
