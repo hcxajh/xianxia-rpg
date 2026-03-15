@@ -705,43 +705,116 @@
             updateUI();
         });
 
-        // 触摸滑动控制
+        // 触摸滑动控制 - 增强版：支持连续滑动
         let touchStartX = 0;
         let touchStartY = 0;
+        let isSwiping = false;
+        let swipeInterval = null;
         const MIN_SWIPE = 30;
+        const SWIPE_DELAY = 200; // 连续滑动间隔（毫秒）
 
-        document.addEventListener('touchstart', (e) => {
-            touchStartX = e.touches[0].clientX;
-            touchStartY = e.touches[0].clientY;
-        }, { passive: true });
-
-        document.addEventListener('touchend', (e) => {
-            if (game.inBattle) return;
-            
-            const touchEndX = e.changedTouches[0].clientX;
-            const touchEndY = e.changedTouches[0].clientY;
-            
-            const dx = touchEndX - touchStartX;
-            const dy = touchEndY - touchStartY;
-            
-            if (Math.abs(dx) < MIN_SWIPE && Math.abs(dy) < MIN_SWIPE) return;
-            
+        // 监听 canvas 上的触摸事件
+        const canvas = document.getElementById('gameCanvas');
+        
+        // 执行滑动移动
+        function doSwipeMove(dx, dy) {
             if (Math.abs(dx) > Math.abs(dy)) {
                 // 水平滑动
-                if (dx > 0) {
-                    movePlayer(1, 0);
-                } else {
-                    movePlayer(-1, 0);
-                }
+                movePlayer(dx > 0 ? 1 : -1, 0);
             } else {
-                // 垂直滑动
-                if (dy > 0) {
-                    movePlayer(0, 1);
-                } else {
-                    movePlayer(0, -1);
+                // 垂直滑动 - 手指向下滑 = 向下走
+                movePlayer(0, dy > 0 ? 1 : -1);
+            }
+        }
+        
+        // 开始连续滑动
+        function startContinuousSwipe(dx, dy) {
+            if (swipeInterval) clearInterval(swipeInterval);
+            doSwipeMove(dx, dy);
+            swipeInterval = setInterval(() => {
+                if (!game.inBattle && isSwiping) {
+                    doSwipeMove(dx, dy);
+                }
+            }, SWIPE_DELAY);
+        }
+        
+        // 停止连续滑动
+        function stopContinuousSwipe() {
+            if (swipeInterval) {
+                clearInterval(swipeInterval);
+                swipeInterval = null;
+            }
+        }
+        
+        canvas.addEventListener('touchstart', (e) => {
+            if (game.inBattle) return;
+            e.preventDefault();
+            const touch = e.touches[0];
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+            isSwiping = true;
+        }, { passive: false });
+
+        canvas.addEventListener('touchmove', (e) => {
+            if (game.inBattle || !isSwiping) return;
+            e.preventDefault();
+            
+            const touch = e.touches[0];
+            const dx = touch.clientX - touchStartX;
+            const dy = touch.clientY - touchStartY;
+            
+            // 达到滑动阈值后开始连续移动
+            if (Math.abs(dx) > MIN_SWIPE || Math.abs(dy) > MIN_SWIPE) {
+                // 判断方向
+                const moveDx = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 1 : -1) : 0;
+                const moveDy = Math.abs(dy) >= Math.abs(dx) ? (dy > 0 ? 1 : -1) : 0;
+                
+                // 根据当前触摸位置动态调整方向
+                if (moveDx !== 0 && !swipeInterval) {
+                    startContinuousSwipe(moveDx, 0);
+                } else if (moveDy !== 0 && !swipeInterval) {
+                    startContinuousSwipe(0, moveDy);
                 }
             }
-        }, { passive: true });
+        }, { passive: false });
+
+        canvas.addEventListener('touchend', (e) => {
+            if (game.inBattle) return;
+            e.preventDefault();
+            
+            stopContinuousSwipe();
+            isSwiping = false;
+            
+            // 如果是快速点击（不足滑动阈值），执行一次移动
+            const touch = e.changedTouches[0];
+            const dx = touch.clientX - touchStartX;
+            const dy = touch.clientY - touchStartY;
+            
+            if (Math.abs(dx) < MIN_SWIPE && Math.abs(dy) < MIN_SWIPE) {
+                // 点击区域：上半屏向上，下半屏向下，左半屏向左，右半屏向右
+                const rect = canvas.getBoundingClientRect();
+                const relX = touch.clientX - rect.left;
+                const relY = touch.clientY - rect.top;
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                
+                if (relY < centerY - 30) {
+                    movePlayer(0, -1); // 上
+                } else if (relY > centerY + 30) {
+                    movePlayer(0, 1);  // 下
+                } else if (relX < centerX - 30) {
+                    movePlayer(-1, 0); // 左
+                } else if (relX > centerX + 30) {
+                    movePlayer(1, 0);  // 右
+                }
+            }
+        }, { passive: false });
+
+        // 触摸取消处理
+        canvas.addEventListener('touchcancel', () => {
+            isSwiping = false;
+            stopContinuousSwipe();
+        });
 
         // 初始化游戏
         function init() {
