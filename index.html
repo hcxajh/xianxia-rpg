@@ -16,30 +16,47 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
             font-family: 'Microsoft YaHei', sans-serif;
             color: #fff;
-            overflow: hidden;
+            overflow-x: hidden;
+            padding: 10px;
+        }
+        h1 {
+            margin: 8px 0;
+            text-shadow: 0 0 20px #6644ff;
+            font-size: 1.5rem;
+            text-align: center;
         }
         #gameContainer {
             position: relative;
+            width: 100%;
+            max-width: 800px;
+            aspect-ratio: 4/3;
         }
         canvas {
+            width: 100%;
+            height: 100%;
             border: 3px solid #4a4a6a;
             border-radius: 8px;
             box-shadow: 0 0 30px rgba(100, 100, 200, 0.3);
+            display: block;
         }
         #ui {
             position: absolute;
             top: 10px;
             left: 10px;
             background: rgba(0, 0, 0, 0.7);
-            padding: 10px 15px;
+            padding: 8px 12px;
             border-radius: 5px;
-            font-size: 14px;
+            font-size: 12px;
+            max-width: 45%;
         }
         #ui div {
-            margin: 3px 0;
+            margin: 2px 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         #messageBox {
             position: absolute;
@@ -47,12 +64,14 @@
             left: 50%;
             transform: translateX(-50%);
             background: rgba(0, 0, 0, 0.85);
-            padding: 15px 25px;
+            padding: 12px 20px;
             border-radius: 8px;
             border: 2px solid #6a6a8a;
             text-align: center;
-            min-width: 300px;
+            min-width: 60%;
+            max-width: 90%;
             display: none;
+            font-size: 14px;
         }
         #messageBox.show {
             display: block;
@@ -68,31 +87,34 @@
             left: 50%;
             transform: translate(-50%, -50%);
             background: rgba(20, 20, 40, 0.95);
-            padding: 20px;
+            padding: 15px;
             border-radius: 10px;
             border: 3px solid #8b0000;
             text-align: center;
             display: none;
-            min-width: 400px;
+            width: 90%;
+            max-width: 400px;
         }
         #battleUI.show {
             display: block;
         }
         .battle-title {
             color: #ff4444;
-            font-size: 24px;
-            margin-bottom: 15px;
+            font-size: 18px;
+            margin-bottom: 10px;
             text-shadow: 0 0 10px #ff0000;
         }
         .enemy-info {
-            margin: 15px 0;
-            padding: 10px;
+            margin: 10px 0;
+            padding: 8px;
             background: rgba(100, 0, 0, 0.3);
             border-radius: 5px;
+            font-size: 13px;
         }
         .hp-bar {
-            width: 200px;
-            height: 20px;
+            width: 100%;
+            max-width: 200px;
+            height: 16px;
             background: #333;
             border-radius: 10px;
             margin: 5px auto;
@@ -108,31 +130,154 @@
         }
         .battle-actions {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             justify-content: center;
-            margin-top: 15px;
+            margin-top: 10px;
+            flex-wrap: wrap;
         }
         button {
-            padding: 10px 20px;
-            font-size: 16px;
+            padding: 12px 16px;
+            font-size: 14px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             transition: all 0.2s;
             font-family: 'Microsoft YaHei', sans-serif;
+            min-width: 70px;
+            touch-action: manipulation;
+        }
+        button:active {
+            transform: scale(0.95);
         }
         .btn-attack { background: #ff4444; color: white; }
-        .btn-attack:hover { background: #ff6666; transform: scale(1.05); }
+        .btn-attack:hover { background: #ff6666; }
         .btn-skill { background: #8844ff; color: white; }
-        .btn-skill:hover { background: #aa66ff; transform: scale(1.05); }
+        .btn-skill:hover { background: #aa66ff; }
         .btn-heal { background: #44aa44; color: white; }
-        .btn-heal:hover { background: #66cc66; transform: scale(1.05); }
+        .btn-heal:hover { background: #66cc66; }
         .btn-run { background: #888; color: white; }
-        .btn-run:hover { background: #aaa; transform: scale(1.05); }
+        .btn-run:hover { background: #aaa; }
+        
+        /* 移动端控制按钮 */
+        #mobileControls {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100;
+        }
+        .dpad {
+            display: grid;
+            grid-template-columns: repeat(3, 50px);
+            grid-template-rows: repeat(3, 50px);
+            gap: 5px;
+        }
+        .dpad-btn {
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            color: white;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+        .dpad-btn:active {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        .dpad-btn.empty {
+            background: transparent;
+            border: none;
+        }
+        
+        /* 移动端操作按钮 */
+        #mobileActions {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 100;
+            gap: 10px;
+        }
+        .action-btn {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            border: none;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            touch-action: manipulation;
+        }
+        .action-btn:active {
+            transform: scale(0.9);
+        }
+        
         #controls {
-            margin-top: 15px;
+            margin-top: 10px;
             color: #aaa;
-            font-size: 13px;
+            font-size: 12px;
+            text-align: center;
+            padding-bottom: 80px;
+        }
+
+        /* 响应式断点 */
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.2rem;
+            }
+            #ui {
+                font-size: 10px;
+                padding: 6px 8px;
+                max-width: 50%;
+            }
+            #messageBox {
+                font-size: 12px;
+                padding: 10px 15px;
+            }
+            .battle-title {
+                font-size: 16px;
+            }
+            .enemy-info {
+                font-size: 12px;
+            }
+            button {
+                padding: 10px 12px;
+                font-size: 12px;
+                min-width: 60px;
+            }
+            #mobileControls, #mobileActions {
+                display: flex;
+            }
+            #controls {
+                display: none;
+            }
+        }
+        
+        @media (min-width: 601px) {
+            /* 平板及以上显示提示 */
+            body::after {
+                content: '💡 手机端可用屏幕下方按钮控制';
+                position: fixed;
+                bottom: 10px;
+                left: 50%;
+                transform: translateX(-50%);
+                color: rgba(255,255,255,0.3);
+                font-size: 11px;
+                display: none;
+            }
+            @media (hover: none) and (pointer: coarse) {
+                body::after {
+                    display: block;
+                }
+            }
         }
     </style>
 </head>
@@ -171,6 +316,26 @@
         </div>
     </div>
     <div id="controls">移动: WASD 或 方向键 | 探索: E | 背包: I</div>
+
+    <!-- 移动端控制按钮 -->
+    <div id="mobileControls">
+        <div class="dpad">
+            <div class="dpad-btn empty"></div>
+            <div class="dpad-btn" onclick="movePlayer(0, -1)">⬆️</div>
+            <div class="dpad-btn empty"></div>
+            <div class="dpad-btn" onclick="movePlayer(-1, 0)">⬅️</div>
+            <div class="dpad-btn empty"></div>
+            <div class="dpad-btn" onclick="movePlayer(1, 0)">➡️</div>
+            <div class="dpad-btn empty"></div>
+            <div class="dpad-btn" onclick="movePlayer(0, 1)">⬇️</div>
+            <div class="dpad-btn empty"></div>
+        </div>
+    </div>
+    
+    <!-- 移动端操作按钮 -->
+    <div id="mobileActions">
+        <button class="action-btn" style="background: #4a7c4a;" onclick="explore()">🔍</button>
+    </div>
 
     <script>
         // 游戏配置
@@ -498,6 +663,17 @@
             drawMap();
         }
 
+        // 探索功能
+        function explore() {
+            if (!game.inBattle) {
+                showMessage('你仔细探查了周围...');
+                if (Math.random() < 0.3) {
+                    game.player.mp = Math.min(game.player.maxMp, game.player.mp + 10);
+                    showMessage('发现了一些灵草！灵力恢复了10点！');
+                }
+            }
+        }
+
         // 键盘控制
         document.addEventListener('keydown', (e) => {
             switch (e.key) {
@@ -523,18 +699,49 @@
                     break;
                 case 'e':
                 case 'E':
-                    if (!game.inBattle) {
-                        showMessage('你仔细探查了周围...');
-                        if (Math.random() < 0.3) {
-                            showMessage('发现了一些灵草！');
-                            game.player.mp = Math.min(game.player.maxMp, game.player.mp + 10);
-                            showMessage('灵力恢复了10点！');
-                        }
-                    }
+                    explore();
                     break;
             }
             updateUI();
         });
+
+        // 触摸滑动控制
+        let touchStartX = 0;
+        let touchStartY = 0;
+        const MIN_SWIPE = 30;
+
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        }, { passive: true });
+
+        document.addEventListener('touchend', (e) => {
+            if (game.inBattle) return;
+            
+            const touchEndX = e.changedTouches[0].clientX;
+            const touchEndY = e.changedTouches[0].clientY;
+            
+            const dx = touchEndX - touchStartX;
+            const dy = touchEndY - touchStartY;
+            
+            if (Math.abs(dx) < MIN_SWIPE && Math.abs(dy) < MIN_SWIPE) return;
+            
+            if (Math.abs(dx) > Math.abs(dy)) {
+                // 水平滑动
+                if (dx > 0) {
+                    movePlayer(1, 0);
+                } else {
+                    movePlayer(-1, 0);
+                }
+            } else {
+                // 垂直滑动
+                if (dy > 0) {
+                    movePlayer(0, 1);
+                } else {
+                    movePlayer(0, -1);
+                }
+            }
+        }, { passive: true });
 
         // 初始化游戏
         function init() {
